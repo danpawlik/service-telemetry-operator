@@ -3,7 +3,7 @@
     name: stf-crc_cloud-ocp418
     nodes:
       - name: controller
-        label: cloud-centos-9-stream-tripleo-vexxhost
+        label: cloud-centos-9-stream-tripleo
       - name: crc
         label: crc-cloud-ocp-4-18-1-3xl
 
@@ -11,7 +11,7 @@
     name: stf-crc_cloud-ocp420
     nodes:
       - name: controller
-        label: cloud-centos-9-stream-tripleo-vexxhost
+        label: cloud-centos-9-stream-tripleo
       - name: crc
         label: crc-cloud-ocp-4-20-1-3xl
 
