@@ -58,15 +58,6 @@ generate_bundle() {
     # Can be removed if we ever adapt to latest operator-sdk project dir expectations.
     rm -f "${WORKING_DIR}/manifests/prometheus-alarm-rules_monitoring.rhobs_v1_prometheusrule.yaml"
 
-    # CSVs without a spec.replaces field are valid, so fall back to those if
-    # latest released version is unknown.
-    # Placeholder value is validated by operator-sdk during local bundle
-    # generation and so needs to conform to RFC1123.
-    if [[ -n "$BUNDLE_LATEST_RELEASED_VERSION" ]]; then
-        REPLACE_REGEX="$REPLACE_REGEX;s#---bundle-latest-released-version#${BUNDLE_LATEST_RELEASED_VERSION}#g"
-    else sed -i '/---bundle-latest-released-version/d' "${WORKING_DIR}/manifests/${OPERATOR_NAME}.clusterserviceversion.yaml"
-    fi
-
     sed -i -E "${REPLACE_REGEX}" "${WORKING_DIR}/manifests/${OPERATOR_NAME}.clusterserviceversion.yaml"
 }
 
