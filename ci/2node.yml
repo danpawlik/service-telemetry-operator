@@ -8,6 +8,7 @@
     cifmw_use_devscripts: false
     cifmw_openshift_setup_skip_internal_registry_tls_verify: true
     cifmw_target_host: controller
+    cifmw_openshift_setup_apply_marketplace_fix: true
   environment:
     PATH: "~/.crc/bin:~/.crc/bin/oc:~/bin:{{ ansible_env.PATH }}"
   tasks:

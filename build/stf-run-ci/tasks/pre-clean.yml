@@ -1,4 +1,19 @@
 # NOTE: This cleanup step prevents parallel CI jobs
+
+# Discover which API groups are available so we can skip cleanup tasks
+# for APIs not present on this cluster (e.g. OCP 4.20 minimal images
+# may lack build.openshift.io or project.openshift.io).
+- name: Discover available API groups
+  kubernetes.core.k8s_cluster_info:
+  register: _cluster_info
+
+- name: Build set of available API groups
+  ansible.builtin.set_fact:
+    _available_api_groups: >-
+      {{ _cluster_info.apis | dict2items
+         | map(attribute='key') | map('regex_replace', '/.*$', '')
+         | list | unique }}
+
 - name: Clear out existing CRDs so we don't conflict or fail merge
   kubernetes.core.k8s:
     state: absent
@@ -34,6 +49,7 @@
 # been enabled. This avoids installing an additional CatalogSource which is no
 # longer required.
 - name: Remove OperatorHub.io CatalogSource if it installed
+  when: "'operators.coreos.com' in _available_api_groups"
   kubernetes.core.k8s:
     state: absent
     definition:
@@ -51,6 +67,7 @@
 # Upstream Source + Sub from https://github.com/rhobs/observability-operator/tree/main/hack/olm
 # Moved to using Community Operators Catalog, so no longer require upstream CatalogSource. Eventually move to Red Hat Operators CatalogSource.
 - name: Remove Red Hat Observability Operator CatalogSource if it is installed
+  when: "'operators.coreos.com' in _available_api_groups"
   kubernetes.core.k8s:
     state: absent
     definition:
@@ -62,6 +79,7 @@
         namespace: openshift-marketplace
 
 - name: Remove CloudOps CatalogSource if it is installed
+  when: "'operators.coreos.com' in _available_api_groups"
   kubernetes.core.k8s:
     state: absent
     definition:
@@ -76,6 +94,7 @@
         sourceType: grpc
 
 - name: Remove Service Telemetry Operator bundle build
+  when: "'build.openshift.io' in _available_api_groups"
   kubernetes.core.k8s:
     state: absent
     api_version: build.openshift.io/v1
@@ -85,6 +104,7 @@
       - "build=service-telemetry-operator-bundle"
 
 - name: Remove Smart Gateway Operator bundle build
+  when: "'build.openshift.io' in _available_api_groups"
   kubernetes.core.k8s:
     state: absent
     api_version: build.openshift.io/v1
@@ -94,6 +114,7 @@
       - "build=smart-gateway-operator-bundle"
 
 - name: Remove Service Telemetry Framework index build
+  when: "'build.openshift.io' in _available_api_groups"
   kubernetes.core.k8s:
     state: absent
     api_version: build.openshift.io/v1
@@ -103,6 +124,7 @@
       - "build=service-telemetry-framework-index"
 
 - name: Remove service-telemetry-operator-bundle CatalogSource (bundle deploy)
+  when: "'operators.coreos.com' in _available_api_groups"
   kubernetes.core.k8s:
     state: absent
     definition:
@@ -113,6 +135,7 @@
         namespace: "{{ namespace }}"
 
 - name: Remove smart-gateway-operator-bundle CatalogSource (bundle deploy)
+  when: "'operators.coreos.com' in _available_api_groups"
   kubernetes.core.k8s:
     state: absent
     definition:
@@ -123,6 +146,7 @@
         namespace: "{{ namespace }}"
 
 - name: Remove openshift-cert-manager-operator namespace
+  when: "'project.openshift.io' in _available_api_groups"
   kubernetes.core.k8s:
     state: absent
     wait: true
